@@ -2,6 +2,7 @@ package main
 
 import (
 	"bio-cleaner-api/models"
+	"context"
 	"crypto/rsa"
 	"encoding/json"
 	"io/ioutil"
@@ -48,17 +49,28 @@ type tokenResponse struct {
 	Token string `json:"token"`
 }
 
+type jwtClaims struct {
+	Identifier string `json:"identifier"`
+	jwt.StandardClaims
+}
+
+type ctxClaims string
+
 func authenticatedMiddleware(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		token, err := jwtRequest.ParseFromRequest(r, jwtRequest.AuthorizationHeaderExtractor, func(token *jwt.Token) (interface{}, error) {
+		token, err := jwtRequest.ParseFromRequestWithClaims(r, jwtRequest.AuthorizationHeaderExtractor, &jwtClaims{}, func(token *jwt.Token) (interface{}, error) {
 			return verifyKey, nil
 		})
-		if err != nil || !token.Valid {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		if err != nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
-
-		h.ServeHTTP(w, r)
+		if claims, ok := token.Claims.(*jwtClaims); ok && token.Valid {
+			ctx := context.WithValue(r.Context(), ctxClaims("claims"), claims)
+			h.ServeHTTP(w, r.WithContext(ctx))
+		} else {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		}
 	})
 }
 
@@ -82,10 +94,13 @@ func auth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodRS512, jwt.StandardClaims{
-		ExpiresAt: time.Now().Add(60 * time.Second).Unix(),
-		Issuer:    "Bio-Cleaner24 API",
-		Subject:   user.Identifier,
+	token := jwt.NewWithClaims(jwt.SigningMethodRS512, jwtClaims{
+		user.Identifier,
+		jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Hour).Unix(),
+			Issuer:    "Bio-Cleaner24 API",
+			Subject:   user.Identifier,
+		},
 	})
 	tokenString, err := token.SignedString(signKey)
 	if err != nil {

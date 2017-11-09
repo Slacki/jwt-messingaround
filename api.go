@@ -17,5 +17,10 @@ func jsonResponse(response interface{}, w http.ResponseWriter) {
 }
 
 func test(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	claims := ctx.Value(ctxClaims("claims"))
+	if claims != nil {
+		w.Write([]byte(claims.(*jwtClaims).Identifier))
+	}
 	w.Write([]byte("Super tajne!"))
 }

@@ -1,14 +1,21 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 )
 
-func authenticatedMiddleware(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		h.ServeHTTP(w, r)
-	})
+func jsonResponse(response interface{}, w http.ResponseWriter) {
+	jsonBytes, err := json.Marshal(response)
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonBytes)
 }
 
-func auth(w http.ResponseWriter, r *http.Request) {
+func test(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Super tajne!"))
 }

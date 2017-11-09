@@ -15,12 +15,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-//  $ openssl genrsa -out app.rsa 4096
-//  $ openssl rsa -in app.rsa -pubout > app.rsa.pub
-
 const (
 	privateKeyPath = "keys/app.rsa"
 	publicKeyPath  = "keys/app.rsa.pub"
+	crtPath        = "keys/server.crt"
+	crtKeyPath     = "keys/server.key"
 )
 
 var (
@@ -55,6 +54,13 @@ type jwtClaims struct {
 }
 
 type ctxClaims string
+
+func TLSMiddleware(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
+		h.ServeHTTP(w, r)
+	})
+}
 
 func authenticatedMiddleware(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

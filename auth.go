@@ -18,8 +18,6 @@ import (
 const (
 	privateKeyPath = "keys/app.rsa"
 	publicKeyPath  = "keys/app.rsa.pub"
-	crtPath        = "keys/server.crt"
-	crtKeyPath     = "keys/server.key"
 )
 
 var (
@@ -54,13 +52,6 @@ type jwtClaims struct {
 }
 
 type ctxClaims string
-
-func tlsMiddleware(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
-		h.ServeHTTP(w, r)
-	})
-}
 
 func authenticatedMiddleware(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

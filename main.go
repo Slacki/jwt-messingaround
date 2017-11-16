@@ -36,8 +36,7 @@ func main() {
 	}
 
 	router := mux.NewRouter()
-	router.Schemes("https")
-	router.Handle("/auth", alice.New(tlsMiddleware).Then(http.HandlerFunc(handle_auth)))
-	router.Handle("/test", alice.New(tlsMiddleware, authenticatedMiddleware).Then(http.HandlerFunc(handle_test))).Methods("GET")
-	log.Fatal(http.ListenAndServeTLS(":8812", crtPath, crtKeyPath, router))
+	router.Handle("/auth", http.HandlerFunc(handle_auth)).Methods("POST")
+	router.Handle("/test", alice.New(authenticatedMiddleware).Then(http.HandlerFunc(handle_test))).Methods("GET")
+	log.Fatal(http.ListenAndServe(":8812", router)
 }

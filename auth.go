@@ -55,7 +55,7 @@ type jwtClaims struct {
 
 type ctxClaims string
 
-func TLSMiddleware(h http.Handler) http.Handler {
+func tlsMiddleware(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
 		h.ServeHTTP(w, r)
@@ -68,7 +68,7 @@ func authenticatedMiddleware(h http.Handler) http.Handler {
 			return verifyKey, nil
 		})
 		if err != nil {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
 		if claims, ok := token.Claims.(*jwtClaims); ok && token.Valid {
@@ -80,7 +80,7 @@ func authenticatedMiddleware(h http.Handler) http.Handler {
 	})
 }
 
-func auth(w http.ResponseWriter, r *http.Request) {
+func handle_auth(w http.ResponseWriter, r *http.Request) {
 	var userCreds userCredentials
 	err := json.NewDecoder(r.Body).Decode(&userCreds)
 	if err != nil {

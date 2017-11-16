@@ -16,7 +16,7 @@ func jsonResponse(response interface{}, w http.ResponseWriter) {
 	w.Write(jsonBytes)
 }
 
-func test(w http.ResponseWriter, r *http.Request) {
+func handle_test(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	claims := ctx.Value(ctxClaims("claims"))
 	if claims != nil {

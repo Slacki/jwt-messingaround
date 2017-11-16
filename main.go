@@ -8,6 +8,7 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/justinas/alice"
+	"github.com/rs/cors"
 )
 
 // DEV determines if it is development or production code
@@ -36,7 +37,11 @@ func main() {
 	}
 
 	router := mux.NewRouter()
-	router.Handle("/auth", http.HandlerFunc(handle_auth)).Methods("POST")
+	router.HandleFunc("/auth", handle_auth).Methods("POST")
 	router.Handle("/test", alice.New(authenticatedMiddleware).Then(http.HandlerFunc(handle_test))).Methods("GET")
-	log.Fatal(http.ListenAndServe(":8812", router)
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+	})
+	handler := c.Handler(router)
+	log.Fatal(http.ListenAndServe(":8812", handler))
 }

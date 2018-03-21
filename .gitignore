@@ -1,3 +1,4 @@
 bio-cleaner-api*
 debug*
-keys/*.rsa*
+keys/*
+!keys/.gitkeep

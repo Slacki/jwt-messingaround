@@ -22,5 +22,5 @@ func handle_test(w http.ResponseWriter, r *http.Request) {
 	if claims != nil {
 		w.Write([]byte(claims.(*jwtClaims).Identifier))
 	}
-	w.Write([]byte("Super tajne!"))
+	w.Write([]byte("Top secret!"))
 }
